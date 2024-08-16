@@ -16,6 +16,7 @@ function App() {
   const [weather, setWeather] = useState(null);
   const [city, setCity] = useState("");
   const [loading, setLoading] = useState(false);
+  const [apiError, setAPIError] = useState("");
   const cities = ["Los Angeles", "New York", "Italy", "Seoul"];
   const KEY = process.env.REACT_APP_WEATHER_API_KEY;
 
@@ -28,21 +29,40 @@ function App() {
   };
 
   const getWeatherByCurrentLocation = async (lat, lon) => {
-    let url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${KEY}&units=metric`;
-    setLoading(true);
-    let response = await fetch(url);
-    let data = await response.json();
-    setWeather(data);
-    setLoading(false);
+    try {
+      let url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${KEY}&units=metric`;
+      setLoading(true);
+      let response = await fetch(url);
+      let data = await response.json();
+      setWeather(data);
+      setLoading(false);
+    } catch (error) {
+      setAPIError(error.message);
+      setLoading(false);
+    }
   };
 
   const getWeatherByCity = async () => {
-    let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${KEY}&units=metric`;
-    setLoading(true);
-    let response = await fetch(url);
-    let data = await response.json();
-    setWeather(data);
-    setLoading(false);
+    try {
+      let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${KEY}&units=metric`;
+      setLoading(true);
+      let response = await fetch(url);
+      let data = await response.json();
+      setWeather(data);
+      setLoading(false);
+    } catch (error) {
+      console.log("getWeatherByCity", error);
+      setAPIError(error.message);
+      setLoading(false);
+    }
+  };
+
+  const handleCityChange = (city) => {
+    if (city === "current") {
+      setCity("");
+    } else {
+      setCity(city);
+    }
   };
 
   useEffect(() => {
@@ -58,11 +78,18 @@ function App() {
       <div className="container">
         {loading ? (
           <ClipLoader color="#f88c6b" loading={loading} size={150} />
-        ) : (
+        ) : !apiError ? (
           <>
             <WeatherBox weather={weather} />
-            <WeatherButton cities={cities} setCity={setCity} />
+            <WeatherButton
+              cities={cities}
+              setCity={setCity}
+              selectedCity={city}
+              handleCityChange={handleCityChange}
+            />
           </>
+        ) : (
+          apiError
         )}
       </div>
     </div>
